@@ -59,7 +59,9 @@ exit       - Disconnect
     
     elif cmd.startswith("open "):
         url = cmd[5:]
-        result = f"[INFO] Opening {url}...\n[NOTE] Web version cannot open external apps"
+        if "." not in url: url += ".com"
+        if not url.startswith("http"): url="http://" + url
+        return{"output":f"Opening {url}...", "open_url": url}
     
     elif cmd == "clear":
         result = "CLEAR"  # Special signal to clear the terminal
@@ -94,17 +96,12 @@ def execute():
         return jsonify({'output': '', 'clear': False})
     
     output = execute_command(command)
-    should_clear = (output == "CLEAR")
-    
-    # Add to history
-    command_history.append({
-        'command': command,
-        'output': output,
-        'time': datetime.datetime.now().strftime("%H:%M:%S")
-    })
-    
+    if isinstance(output, dict):
+        return jsonify(output)
+    should_clear=(output=="CLEAR")
+
     return jsonify({
-        'output': output if not should_clear else '',
+        'output':output if not should_clear else '',
         'clear': should_clear
     })
 

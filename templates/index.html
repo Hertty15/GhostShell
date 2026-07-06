@@ -150,6 +150,41 @@ Type 'help' for commands
             } catch (error) {
                 addLine(`[ERROR] Connection failed: ${error.message}`, 'error');
             }
+
+            async function executeCommand(cmd) {
+                addLine(`${prompt.textContent} ${cmd}`, 'info');
+                
+                try{
+                    const response=await fetch('/execute', {
+                        method:'POST',
+                        headers:{'Content-Type': 'application/json'},
+                        body: JSON.stringify({command:cmd})
+                    });
+
+                    const data=await response.json();
+
+                    if (data.clear){
+                        output.innerHTML='';
+                    }else if (data.output){
+                        const lines=data.output.split('\n');
+                        lines.forEach(line=>{
+                            let className='';
+                            if (line.includes('[ERROR]')) className='error';
+                            else if (line.includes('[SUCCESS]')) className='success';
+                            else if (line.includes('[INFO]')) className='info';
+                            addLine(line, className);
+                        });
+                    }
+
+                    //this is new cool part
+                    if (data.open_url){
+                        window.open(data.open_url, '_blank');
+                    }
+
+                } catch (error){
+                    addLine(`[ERROR] Connection failed: ${error.message}`, 'error');
+                }
+            }
         }
         
         input.addEventListener('keypress', async (e) => {
