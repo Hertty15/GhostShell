@@ -177,8 +177,12 @@ Type 'help' for commands
                     }
 
                     //this is new cool part
-                    if (data.open_url){
-                        window.open(data.open_url, '_blank');
+                    if (data.open_url) {
+                        const linkline=document.createElement('div');
+                        linkline.className='line success';
+                        linkline.innerHTML=`[SYSTEM] Link ready: <a href="${data.open_url}" target="_blank" style="color: 00ffff; text-decoration:underline; font-weight:bold;">${data.open_url}</a>`;
+                        output.appendChild(linkline);
+                        terminal.scrollTop=terminal.scrollHeight;
                     }
 
                 } catch (error){
