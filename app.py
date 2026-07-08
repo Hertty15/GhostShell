@@ -31,16 +31,14 @@ def execute_command(cmd):
     
     # Built-in commands
     if cmd == "help":
-        result = """
-=== GHOSTSHELL COMMANDS ===
-sysinfo    - System reconnaissance
-clear      - Clear terminal
-ghost      - Stealth protocol
-help       - Show this menu
-exit       - Disconnect
+        result = "===GHOSTSHELL COMMANDS===\n"
+        result += "sysinfo    - System reconnaissance\n"
+        result += "clear      - Clear terminal\n"
+        result += "ghost      - Stealth protocol\n"
+        result += "help       - Show this menu\n"
+        result += "exit       - Disconnect\n"
 
-[INFO] Windows commands work too (calc, notepad, dir)
-"""
+
     
     elif cmd == "sysinfo":
         info = get_sysinfo()
