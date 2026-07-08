@@ -35,7 +35,6 @@ def execute_command(cmd):
 === GHOSTSHELL COMMANDS ===
 sysinfo    - System reconnaissance
 clear      - Clear terminal
-open [url] - Open website
 ghost      - Stealth protocol
 help       - Show this menu
 exit       - Disconnect
@@ -56,12 +55,6 @@ exit       - Disconnect
             result += f"Bypassing firewall layer {i}/5...\n"
             time.sleep(0.1)  # Simulated delay
         result += "[SUCCESS] Ghost mode activated."
-    
-    elif cmd.startswith("open "):
-        url = cmd[5:]
-        if "." not in url: url += ".com"
-        if not url.startswith("http"): url="http://" + url
-        return {"action": "open", "url": url}
     
     elif cmd == "clear":
         result = "CLEAR"  # Special signal to clear the terminal
