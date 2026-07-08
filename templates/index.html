@@ -104,7 +104,7 @@ Type 'help' for commands
     </form>
     <div id="terminal">
 
-    <script>
+        <script>
         const terminal = document.getElementById('terminal');
         const output = document.getElementById('output');
         const input = document.getElementById('command-input');
@@ -112,32 +112,22 @@ Type 'help' for commands
         
         function updateTime() {
             const now = new Date();
-            const time = now.toLocaleTimeString('en-US', { hour12: false });
-            prompt.textContent = `[${time}] GhostShell>`;
+            prompt.textContent = `[${now.toLocaleTimeString('en-US', { hour12: false })}] GhostShell>`;
         }
-        
         setInterval(updateTime, 1000);
         updateTime();
         
-        function addLine(text, className = '') {
+        function addLine(text, color = '#00ff00') {
             const line = document.createElement('div');
-            line.className = `line ${className}`;
+            line.style.color = color;
+            line.style.margin = '5px 0';
             line.textContent = text;
-            
-            //convert url to clickable
-            const urlRegex=/(https?:\/\/[^\s<]+)/g;
-            const html=text.replace(urlRegex, '<a href="$1" target="_blank" class="link" style="color: 00ffff; text-decoration:underline; cursor:pointer;">$1</a>');
-
-            if (html !==text){
-                line.innerHTML=html;
-            }
-
             output.appendChild(line);
-            terminal.scrollTop=terminal.scrollHeight;
+            terminal.scrollTop = terminal.scrollHeight;
         }
 
         async function executeCommand(cmd) {
-            addLine(`${prompt.textContent} ${cmd}`, 'info');
+            addLine(`${prompt.textContent} ${cmd}`, '#00ffff');
             
             try {
                 const response = await fetch('/execute', {
@@ -145,89 +135,57 @@ Type 'help' for commands
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ command: cmd })
                 });
-                
                 const data = await response.json();
                 
-                if (data.clear) {
-                    output.innerHTML = '';
-                }
-                if (data.output) {
-                    // Handle colored output
-                    const lines = data.output.split('\n');
-                    lines.forEach(line => {
-                        let className = '';
-                        if (line.includes('[ERROR]')) className = 'error';
-                        else if (line.includes('[SUCCESS]')) className = 'success';
-                        else if (line.includes('[INFO]')) className = 'info';
-                        addLine(line, className);
-                    });
-                }
-            } catch (error) {
-                addLine(`[ERROR] Connection failed: ${error.message}`, 'error');
-            }
-
-            async function executeCommand(cmd) {
-                addLine(`${prompt.textContent} ${cmd}`, 'info');
+                if (data.clear) { output.innerHTML = ''; return; }
                 
-                try{
-                    const response=await fetch('/execute', {
-                        method:'POST',
-                        headers:{'Content-Type': 'application/json'},
-                        body: JSON.stringify({command:cmd})
-                    });
-
-                    const data=await response.json();
-
-                    if (data.clear){
-                        output.innerHTML='';
-                    }else if (data.output){
-                        const lines=data.output.split('\n');
-                        lines.forEach(line=>{
-                            let className='';
-                            if (line.includes('[ERROR]')) className='error';
-                            else if (line.includes('[SUCCESS]')) className='success';
-                            else if (line.includes('[INFO]')) className='info';
-                            addLine(line, className);
-                        });
-                    }
-
-                    //this is new cool part
-                    if (data.open_url){
-                        const form=document.getElementById('url-form');
-                        const urlInput=document.getElementById('url-input');
-                        urlInput.value=data.open_url;
-
-                        //temp submit button and click it
-                        const submitBtn=document.createElement('button');
-                        submitBtn.type='submit';
-                        form.appendChild(submitBtn);
-                        submitBtn.click();
-                        form.removeChild(submitBtn);
-
-                        addLine(`[SYSTEM] Opening ${data.open_url}`, 'info');
-                    }
-
-                } catch (error){
-                    addLine(`[ERROR] Connection failed: ${error.message}`, 'error');
+                if (data.output) {
+                    addLine(data.output, '#00ff00');
                 }
+                
+                // THE BULLETPROOF LINK
+                if (data.action === "open") {
+                    const line = document.createElement('div');
+                    line.style.margin = '5px 0';
+                    
+                    const text = document.createTextNode('Link ready: ');
+                    line.appendChild(text);
+                    
+                    const link = document.createElement('a');
+                    link.href = data.url;
+                    link.target = '_blank'; // Opens in new tab
+                    link.textContent = data.url;
+                    link.style.color = '#00ffff';
+                    link.style.textDecoration = 'underline';
+                    link.style.cursor = 'pointer';
+                    
+                    line.appendChild(link);
+                    output.appendChild(line);
+                }
+                
+                terminal.scrollTop = terminal.scrollHeight;
+                
+            } catch (error) {
+                addLine(`[ERROR] ${error.message}`, '#ff0000');
             }
         }
         
-        input.addEventListener('keypress', async (e) => {
+        input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 const cmd = input.value.trim();
                 if (cmd) {
-                    await executeCommand(cmd);
+                    executeCommand(cmd);
                     input.value = '';
                 }
             }
         });
         
-        // Keep focus on input
-        document.addEventListener('click', () => input.focus());
-        
-        // Initial focus
-        input.focus();
+        // ONLY focus input when clicking the background, not links!
+        terminal.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'A') {
+                input.focus();
+            }
+        });
     </script>
 </body>
 </html>

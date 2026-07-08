@@ -61,7 +61,7 @@ exit       - Disconnect
         url = cmd[5:]
         if "." not in url: url += ".com"
         if not url.startswith("http"): url="http://" + url
-        return f"[SYSTEM] Opening {url}"
+        return {"action": "open", "url": url}
     
     elif cmd == "clear":
         result = "CLEAR"  # Special signal to clear the terminal
@@ -95,13 +95,13 @@ def execute():
     if not command:
         return jsonify({'output': '', 'clear': False})
     
-    output = execute_command(command)
-    if isinstance(output, dict):
-        return jsonify(output)
-    should_clear=(output=="CLEAR")
+    result = execute_command(command)
+    if isinstance(result, dict) and result.get("action")=="open":
+        return jsonify(result)
+    should_clear=(result=="CLEAR")
 
     return jsonify({
-        'output':output if not should_clear else '',
+        'output':result if not should_clear else '',
         'clear': should_clear
     })
 
