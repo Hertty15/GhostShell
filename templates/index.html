@@ -123,7 +123,8 @@ Type 'help' for commands
             const line = document.createElement('div');
             line.style.color = color;
             line.style.margin = '5px 0';
-            line.textContent = text;
+            // Convert \n to <br> tags for proper line breaks
+            line.innerHTML = text.replace(/\n/g, '<br>');
             output.appendChild(line);
             terminal.scrollTop = terminal.scrollHeight;
         }
