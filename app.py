@@ -32,11 +32,13 @@ def execute_command(cmd):
     # Built-in commands
     if cmd == "help":
         result = "===GHOSTSHELL COMMANDS===\n"
-        result += "sysinfo    - System reconnaissance\n"
-        result += "clear      - Clear terminal\n"
-        result += "ghost      - Stealth protocol\n"
-        result += "help       - Show this menu\n"
-        result += "exit       - Disconnect\n"
+        result += "sysinfo                  - System reconnaissance\n"
+        result += "clear                    - Clear terminal\n"
+        result += "ghost                    - Stealth protocol\n"
+        result += "help                     - Show this menu\n"
+        result += "exit                     - Disconnect\n"
+        result += "write [file] [text]      - Creat or edit a file\n"
+        result += "read [file]              - Read the contents of a file\n"
 
 
     
@@ -59,6 +61,32 @@ def execute_command(cmd):
     
     elif cmd in ["exit", "quit"]:
         result = "GhostShell shutting down. Stay safe."
+    
+    elif cmd.startswith("write "):
+        parts=cmd.split(" ", 2)
+        if len(parts)<3:
+            return "[ERROR] Usage: write [filename] [text]"
+        
+        filename=parts[1]
+        text=parts[2]
+
+        if filename in ["app.py", "requirements.txt", "index.html"]:
+            return "[ERROR] Access Denied: Cannot modify system files."
+        
+        try:
+            with open(filename, "w") as f:
+                f.write(text)
+            return f"[SUCCESS] File '{filename}' created/updated successfully."
+        except Exception as e:
+            return f"[ERROR] Could not write file: {e}"
+        
+    elif cmd.startswith("read "):
+        filename=cmd.split(" ",1)[1]
+        try:
+            with open(filename, "r") as f:
+                return f.read()
+        except FileNotFoundError:
+            return f"[ERROR] File '{filename}' not found."
     
     else:
         # Try to execute as system command (limited for security)
