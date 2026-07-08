@@ -39,6 +39,7 @@ ghost      - Stealth protocol
 help       - Show this menu
 exit       - Disconnect
 
+[INFO] Windows commands work too (calc, notepad, dir)
 """
     
     elif cmd == "sysinfo":
