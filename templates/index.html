@@ -99,6 +99,11 @@ Type 'help' for commands
         </div>
     </div>
 
+    <form id="url-form" target="_blank" style="display:none;">
+        <input type="hidden" name="url" id="url-input">
+    </form>
+    <div id="terminal">
+
     <script>
         const terminal = document.getElementById('terminal');
         const output = document.getElementById('output');
@@ -187,12 +192,19 @@ Type 'help' for commands
                     }
 
                     //this is new cool part
-                    if (data.open_url) {
-                        const linkline=document.createElement('div');
-                        linkline.className='line success';
-                        linkline.innerHTML=`[SYSTEM] Link ready: <a href="${data.open_url}" target="_blank" style="color: 00ffff; text-decoration:underline; font-weight:bold;">${data.open_url}</a>`;
-                        output.appendChild(linkline);
-                        terminal.scrollTop=terminal.scrollHeight;
+                    if (data.open_url){
+                        const form=document.getElementById('url-form');
+                        const urlInput=document.getElementById('url-input');
+                        urlInput.value=data.open_url;
+
+                        //temp submit button and click it
+                        const submitBtn=document.createElement('button');
+                        submitBtn.type='submit';
+                        form.appendChild(submitBtn);
+                        submitBtn.click();
+                        form.removeChild(submitBtn);
+
+                        addLine(`[SYSTEM] Opening ${data.open_url}`, 'info');
                     }
 
                 } catch (error){
