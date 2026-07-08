@@ -118,10 +118,19 @@ Type 'help' for commands
             const line = document.createElement('div');
             line.className = `line ${className}`;
             line.textContent = text;
+            
+            //convert url to clickable
+            const urlRegex=/(https?:\/\/[^\s<]+)/g;
+            const html=text.replace(urlRegex, '<a href="$1" target="_blank" class="link" style="color: 00ffff; text-decoration:underline; cursor:pointer;">$1</a>');
+
+            if (html !==text){
+                line.innerHTML=html;
+            }
+
             output.appendChild(line);
-            terminal.scrollTop = terminal.scrollHeight;
+            terminal.scrollTop=terminal.scrollHeight;
         }
-        
+
         async function executeCommand(cmd) {
             addLine(`${prompt.textContent} ${cmd}`, 'info');
             
@@ -136,7 +145,8 @@ Type 'help' for commands
                 
                 if (data.clear) {
                     output.innerHTML = '';
-                } else if (data.output) {
+                }
+                if (data.output) {
                     // Handle colored output
                     const lines = data.output.split('\n');
                     lines.forEach(line => {
