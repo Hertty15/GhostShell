@@ -3,8 +3,12 @@ import subprocess
 import os
 import platform
 import socket
-import time
 import datetime
+import hashlib
+import secrets
+import string
+import time
+
 
 app = Flask(__name__)
 
@@ -36,10 +40,12 @@ def execute_command(cmd):
         result += "clear                    - Clear terminal\n"
         result += "ghost                    - Stealth protocol\n"
         result += "help                     - Show this menu\n"
-        result += "exit                     - Disconnect\n"
         result += "write [file] [text]      - Creat or edit a file\n"
         result += "read [file]              - Read the contents of a file\n"
-
+        result += "hash [text]              - Generate a SHA-256 hash\n"
+        result += "genpass [num]            - Generate a secure password\n"
+        result += "trace [domain]           - Find a website's IP address\n"
+        result += "exit                     - Disconnect\n"
 
     
     elif cmd == "sysinfo":
@@ -87,6 +93,32 @@ def execute_command(cmd):
                 return f.read()
         except FileNotFoundError:
             return f"[ERROR] File '{filename}' not found."
+        
+    elif cmd.startswith("hash "):
+        text=cmd[5:]
+        hashed=hashlib.sha256(text.encode('utf-8')).hexdigest()
+        return f"[SHA-256 HASH]\n{hashed}"
+    
+    elif cmd.startswith("genspass "):
+        try:
+            length=int(cmd.split(" ")[1])
+            #characters used to buld password
+            alphabet=string.ascii_letters+string.digits+string.punctuation
+            #use secrets for tru cryptographic randomnses
+            password=''.join(secrets.choice(alphabet) for i in range(length))
+            return f"[GENERATED PASSWORD]\n{password}"
+        except ValueError:
+            return "[ERROR]Please provide a number after genpass"
+        
+    #ip tracker
+    elif cmd.startswith("trace "):
+        domain=cmd[6:]
+        try:
+            #ask the internet dns for ip of the domain
+            ip=socket.gethostbyname(domain)
+            return f"[NETWORK TRACE]\nDomain: {domain}\nIP Address: {ip}"
+        except socket.gaierror:
+            return f"[ERROR] Could not find IP for '{domain}'. Check the domain name."
     
     else:
         # Try to execute as system command (limited for security)
