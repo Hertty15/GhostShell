@@ -162,7 +162,7 @@
   ██╔═══██╗██╔══██╗██╔════╝████╗  ██║    ██╔════╝██╔═══██╗████╗  ██║██╔════╝ 
   ██║   ██║██████╔╝█████╗  ██╔██╗ ██║    ███████╗██║   ██║██╔██╗ ██║██║  ███╗
   ██║   ██║██╔══██╗██╔══╝  ██║╚██╗██║    ╚════██║██║   ██║██║╚██╗██║██║   ██║
-  ╚██████╝██║  ██║███████╗██║ ╚████║    ███████║╚██████╝██║ ╚████║╚██████╝
+  ╚██████╝ ██║  ██║███████╗██║ ╚████║    ███████║╚██████╝ ██║ ╚████║╚██████╝
    ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═══╝    ╚══════╝ ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ 
 
 GhostShell v2.0
@@ -193,7 +193,7 @@ Type 'help' for commands
             const now=new Date();
             const time=now.toLocaleTimeString('en-US', {hour12:false});
             prompt.textContent=`[${time}] GhostShell>`;
-            clock.textContent=time;
+            if(clock) clock.textContent=time;
         }
 
         setInterval(updatetime,1000);
@@ -202,8 +202,8 @@ Type 'help' for commands
         function add(text, type='success'){
             const line=document.createElement('div');
             line.className=`line ${type}`;
-            //convert \m to <br> to break lines
-            line.innerHTML=text.replace(/\n/g, '<br>');
+            //safely handle new lines
+            line.innerHTML=String(text).replace(/\n/g, '<br>');
             output.appendChild(line);
             terminal.scrollTop=terminal.scrollHeight;
         }
@@ -256,7 +256,10 @@ Type 'help' for commands
 
                 if (data.clear){
                     output.innerHTML='';
+                    return;
                 }
+
+                const outputtext=data.output || "[NO OUTPUT]";
 
                 if (data.output){
                     //autodetect outputtype
