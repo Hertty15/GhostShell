@@ -8,6 +8,10 @@ import hashlib
 import secrets
 import string
 import time
+import urllib.request
+import re
+import base64
+
 
 
 app = Flask(__name__)
@@ -45,6 +49,9 @@ def execute_command(cmd):
         result += "hash [text]              - Generate a SHA-256 hash\n"
         result += "genpass [num]            - Generate a secure password\n"
         result += "trace [domain]           - Find a website's IP address\n"
+        result += "fetch [url]              - Sniff a website's title\n"
+        result += "encode [text]            - Encrypt text to Base64\n"
+        result += "decode [text]            - Decrypt Base64 text\n"
         result += "exit                     - Disconnect\n"
 
     
@@ -119,6 +126,37 @@ def execute_command(cmd):
             return f"[NETWORK TRACE]\nDomain: {domain}\nIP Address: {ip}"
         except socket.gaierror:
             return f"[ERROR] Could not find IP for '{domain}'. Check the domain name."
+        
+    #web fetcher
+    elif cmd.startswith("fetch"):
+        url=cmd[6:]
+        if not url.startswith("http"):
+            url="https://"+url
+        try:
+            req=urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            html=urllib.request.urlopen(req).read().decode('utf-8')
+            title_match=re.search('<title>(.*?)</title>', html, re.IGNORECASE)
+            if title_match:
+                title=title_match.group(1)
+                return f"[SUCCESS] Fetched {url}\nTitle;{title}"
+            return f"[INFO] Fetched {len(html)} bytes from {url}."
+        except Exception as e:
+            return f"[ERROR] Could not reach {url}."
+        
+    #encrypt/decrypt tools
+    elif cmd.startswith("encode "):
+        text=cmd[7:]
+        encoded=base64.b64encode(text.encode('utf-8')).decode('utf-8')
+        return f"[ENCODED] {encoded}"
+    
+    elif cmd.startswith("decode "):
+        text=cmd[7:]
+        try:
+            decoded=base64.b64decode(text.encode('utf-8')).decode('utf-8')
+            return f"[DECODED] {decoded}"
+        except:
+            return "[ERROR] Invalid Base64 string."
+
     
     else:
         # Try to execute as system command (limited for security)
