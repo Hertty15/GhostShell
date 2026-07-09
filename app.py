@@ -99,7 +99,7 @@ def execute_command(cmd):
         hashed=hashlib.sha256(text.encode('utf-8')).hexdigest()
         return f"[SHA-256 HASH]\n{hashed}"
     
-    elif cmd.startswith("genspass "):
+    elif cmd.startswith("genpass "):
         try:
             length=int(cmd.split(" ")[1])
             #characters used to buld password
