@@ -2,314 +2,217 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GhostShell</title>
     <style>
-        *{
-            margin:0;
-            padding:0;
-            box-sizing:border-box;
-        }
-
-        body{
-            background: #0a0a0a;
-            font-family:'Courier New', monospace;
-            overflow:hidden;
-        }
-
-        #terminal{
-            width:100%;
-            height:100vh;
+        /* Basic reset and dark theme */
+        body {
+            background-color: #0d0d0d;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
             padding: 20px;
-            overflow-y: auto;
+            overflow-x: hidden;
         }
-        .banner{
+
+        /* The main terminal area */
+        #terminal {
+            max-width: 900px;
+            margin: 0 auto;
+            padding-bottom: 40px; /* Space for status bar */
+        }
+
+        /* ASCII Banner styling */
+        .banner {
             color: #00ffff;
-            margin-bottom: 30px;
             white-space: pre;
-            font-size: 14px;
+            font-size: 12px;
             line-height: 1.2;
-            text-shadow: 0 0 10px #00ffff;
+            margin-bottom: 20px;
+            text-shadow: 0 0 5px #00ffff;
         }
 
-        .line{
-            margin:8px 0;
-            line-height: 1.6;
-            white-space: pre-wrap;
+        /* Output lines */
+        .output-line {
+            margin: 8px 0;
+            line-height: 1.5;
+            white-space: pre-wrap; /* This fixes the line break issue! */
             word-wrap: break-word;
-            animation: fadeIn 0.3s ease-in;
+            animation: fadeIn 0.2s ease-in;
         }
 
-        @keyframes fadeIn{
-            from{opacity:0; transform:translateY(5px);}
-            to{opacity: 1; transform: translateY(0);}
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
-        .input-line{
+        /* Input area styling */
+        .input-area {
             display: flex;
             align-items: center;
-            margin-top: 15px;
-            padding: 10px;
-            background: rgba(0,255,0, 0.05);
-            border-left: 3px solid #00ff00;
+            margin-top: 10px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
         }
 
-        .prompt{
-            color: #00ff00;
+        .prompt {
+            color: #00ffff;
             margin-right: 10px;
-            white-space: nowrap;
             font-weight: bold;
         }
 
-        #command-input{
+        #command-input {
             background: transparent;
             border: none;
             color: #00ff00;
-            font-family: 'Courier New', monospace;
+            font-family: 'Courier New', Courier, monospace;
             font-size: 16px;
-            flex: 1;
+            flex-grow: 1;
             outline: none;
-            caret-color: #00ffff;
         }
 
-        /*colour classes*/
-        .error{color: #ff4444;}
-        .success{color: #00ff00;}
-        .info{color: #00ffff;}
-        .warning{color: #ffaa00;}
-        .system{color: #ff00ff;}
-
-        /*table styling*/
-        .command-table{
-            display: grid;
-            grid-template-columns: auto 1fr;
-            gap: 5px 20px;
-            margin: 10px 0;
-        }
-
-        .command-name{
-            columns: #00ffff;
-            font-weight: bold;
-        }
-
-        .command-desc{
-            color: #00ff00;
-        }
-
-        /*file list styling*/
-        .file-list{
-            background: rgba(0,255,0, 0.1);
-            padding: 15px;
-            border-radius: 5px;
-            margin: 10px 0;
-        }
-
-        .file-item{
-            padding: 5px 10px;
-            margin: 3px 0;
-            background: rgba(0,255,0, 0.1);
-            border-left: 2px solid #00ff00;
-        }
-
-        /*status bar*/
-        #status-bar{
+        /* Status bar at the bottom */
+        #status-bar {
             position: fixed;
             bottom: 0;
             left: 0;
-            right: 0;
+            width: 100%;
             background: #1a1a1a;
-            padding: 8px 20px;
             border-top: 2px solid #00ff00;
+            padding: 8px 20px;
             display: flex;
             justify-content: space-between;
             font-size: 12px;
-        }
-
-        .status-item{
             color: #00ff00;
+            z-index: 100;
         }
 
-        .status-online{
+        .status-dot {
             color: #00ff00;
-            animation: pulse 2s infinite;
+            animation: blink 2s infinite;
         }
 
-        @keyframes pulse{
-            0%, 100%{opacity:1;}
-            50%{opacity: 0.5;}
-        }
-
-        /*scrollbar*/
-        ::-webkit-scrollbar{
-            width: 10px;
-        }
-        ::-webkit-scrollbar-track{
-            background: #0a0a0a;
-        }
-        ::-webkit-scrollbar-thumb{
-            background: #00ff00;
-            border-radius: 5px;
-        }
-        ::-webkit-scrollbar-thumb:hover{
-            background: #00ffff;
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
         }
     </style>
 </head>
 <body>
+
     <div id="terminal">
         <div class="banner">
    ██████╗ ██████╗ ███████╗███╗   ██╗    ███████╗ ██████╗ ███╗   ██╗ ██████╗ 
   ██╔═══██╗██╔══██╗██╔════╝████╗  ██║    ██╔════╝██╔═══██╗████╗  ██║██╔════╝ 
   ██║   ██║██████╔╝█████╗  ██╔██╗ ██║    ███████╗██║   ██║██╔██╗ ██║██║  ███╗
   ██║   ██║██╔══██╗██╔══╝  ██║╚██╗██║    ╚════██║██║   ██║██║╚██╗██║██║   ██║
-  ╚██████╝ ██║  ██║███████╗██║ ╚████║    ███████║╚██████╝ ██║ ╚████║╚██████╝
-   ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═══╝    ╚══════╝ ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ 
-
-GhostShell v2.0
+  ██████╔╝██║  ██║███████╗██║ ╚████║    ███████║╚██████╔╝██║ ╚████║╚██████╝
+   ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═══╝    ══════╝ ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ 
+GhostShell v2.0 - [WEB EDITION]
 Type 'help' for commands
         </div>
+        
         <div id="output"></div>
-        <div class="input-line">
-            <span class="prompt" id="prompt"></span>
+        
+        <div class="input-area">
+            <span class="prompt" id="prompt">[00:00:00] GhostShell></span>
             <input type="text" id="command-input" autocomplete="off" autofocus>
         </div>
     </div>
 
-    <!--status bar-->
+    <!-- Bottom Status Bar -->
     <div id="status-bar">
-        <span class="status-item"><span class="status-online">●</span> CONNECTED</span>
-        <span class="status-item" id="clock">00:00:00</span>
-        <span class="status-item">GHOSTSHELL v2.0</span>
+        <span><span class="status-dot">●</span> CONNECTED TO SERVER</span>
+        <span id="clock">00:00:00</span>
+        <span>GHOSTSHELL OS</span>
     </div>
 
     <script>
-        const terminal=document.getElementById('terminal')
-        const output=document.getElementById('output')
-        const input=document.getElementById('command-input')
-        const prompt=document.getElementById('prompt')
-        const clock=document.getElementById('clock')
+        // Get our HTML elements
+        const outputDiv = document.getElementById('output');
+        const inputField = document.getElementById('command-input');
+        const promptText = document.getElementById('prompt');
+        const clockText = document.getElementById('clock');
 
-        function updatetime(){
-            const now=new Date();
-            const time=now.toLocaleTimeString('en-US', {hour12:false});
-            prompt.textContent=`[${time}] GhostShell>`;
-            if(clock) clock.textContent=time;
+        // Update the clock every second
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { hour12: false });
+            promptText.textContent = `[${timeString}] GhostShell>`;
+            clockText.textContent = timeString;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Simple function to add text to the screen
+        function addLine(text, color) {
+            const line = document.createElement('div');
+            line.className = 'output-line';
+            line.style.color = color;
+            
+            // This is the magic fix for line breaks: replace \n with <br>
+            line.innerHTML = text.replace(/\n/g, '<br>');
+            
+            outputDiv.appendChild(line);
+            window.scrollTo(0, document.body.scrollHeight);
         }
 
-        setInterval(updatetime,1000);
-        updatetime();
+        // Listen for the Enter key
+        inputField.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                const command = inputField.value.trim();
+                inputField.value = ''; // Clear the input box
 
-        function add(text, type='success'){
-            const line=document.createElement('div');
-            line.className=`line ${type}`;
-            //safely handle new lines
-            line.innerHTML=String(text).replace(/\n/g, '<br>');
-            output.appendChild(line);
-            terminal.scrollTop=terminal.scrollHeight;
-        }
+                if (command) {
+                    // 1. Show what the user typed
+                    addLine(`${promptText.textContent} ${command}`, '#00ffff');
 
-        function addtable(commands){
-            const table=document.createElement('div');
-            table.className='command-table';
+                    // 2. Send it to the Python backend
+                    fetch('/execute', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ command: command })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Handle the clear command
+                        if (data.clear) {
+                            outputDiv.innerHTML = '';
+                            return;
+                        }
 
-            for(const [cmd, desc] of Object.entries(commands)){
-                const name=document.createElement('div');
-                name.className='command-name';
-                name.textContent=cmd;
-
-                const description=document.createElement('div');
-                description.className='command-desc';
-                description.textContent=desc;
-
-                table.appendChild(name);
-                table.appendChild(description);
-            }
-            output.appendChild(table);
-            terminal.scrollTop=terminal.scrollHeight;
-        }
-
-        function addfilelist(file){
-            const container=document.createElement('div');
-            container.className='file-list';
-
-            file.forEach(file=>{
-                const item=document.createElement('div');
-                item.className='file-item';
-                item.textContent=`📄 ${file}`;
-                container.appendChild(item);
-            });
-
-            output.appendChild(container);
-            terminal.scrollTop=terminal.scrollHeight;
-        }
-        async function executecommand(cmd) {
-            addline(`${prompt.textContent} ${cmd}`, 'info');
-
-            try{
-                const resonse= await fetch('/execute', {
-                    method:'POST',
-                    headers:{'Content-Type': 'application/json'},
-                    body:JSON.stringify({command:cmd})
-                });
-
-                const data=await resonse.json();
-
-                if (data.clear){
-                    output.innerHTML='';
-                    return;
-                }
-
-                const outputtext=data.output || "[NO OUTPUT]";
-
-                if (data.output){
-                    //autodetect outputtype
-                    if (data.output.startsWith("===GHOSTSHELL===")){
-                        //parse and display as table
-                        const lines= data.output.split('\n');
-                        const commands={};
-                        lines.forEach(line=>{
-                            if(line.includes('-')){
-                                const parts=line.split(' - ');
-                                if(parts.length===2){
-                                    commands[parts[0].trim()]=parts[1].trim();
-                                }
+                        // Handle normal text output
+                        if (data.output) {
+                            let color = '#00ff00'; // Default green
+                            
+                            // Simple color coding based on keywords
+                            if (data.output.includes('[ERROR]')) {
+                                color = '#ff4444';
+                            } else if (data.output.includes('[SUCCESS]')) {
+                                color = '#00ff00';
+                            } else if (data.output.includes('[SYSTEM]')) {
+                                color = '#ff00ff';
+                            } else if (data.output.includes('[INFO]')) {
+                                color = '#00ffff';
                             }
-                        });
-                        addtable(commands);
-                    }else if (data.output.startsWith("===FILES===")){
-                        //displa as filelist
-                        const files=data.output.replace("===FILES===\n", "").split('\n');
-                        addfilelist(files);
-                    }else{
-                        //reg text output
-                        const type = data.output.includes('[ERROR]') ? 'error' :
-                                   data.output.includes('[SUCCESS]') ? 'success' :
-                                   data.output.includes('[SYSTEM]') ? 'system' :
-                                   data.output.includes('[INFO]') ? 'info' : 'success';
-                        addLine(data.output, type);
-                    }
-                }
-
-                terminal.scrollTop=terminal.scrollHeight;
-            }catch(error){
-                addline(`[ERROR] Connection failed: ${error.message}`, 'error');
-            }
-        }
-        input.addEventListener('keypress', (e)=>{
-            if(e.key==='Enter'){
-                const cmd=input.value.trim();
-                if(cmd){
-                    executecommand(cmd);
-                    input.value='';
+                            
+                            addLine(data.output, color);
+                        }
+                    })
+                    .catch(error => {
+                        addLine(`[ERROR] Connection failed: ${error.message}`, '#ff4444');
+                    });
                 }
             }
         });
 
-        terminal.addEventListener('click',(e)=>{
-            if(e.target.tagname !=='A'){
-                input.focus();
+        // Keep focus on the input box when clicking anywhere
+        document.addEventListener('click', function(event) {
+            // Don't steal focus if they are clicking a link
+            if (event.target.tagName !== 'A') {
+                inputField.focus();
             }
         });
-        input.focus();
     </script>
 </body>
+</html>
